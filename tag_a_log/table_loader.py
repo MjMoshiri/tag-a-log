@@ -1,10 +1,11 @@
 import csv
-from typing import Dict, List
+from typing import Dict
+from collections import defaultdict
 from .utils import wrap_with_try_csv
 
 
 @wrap_with_try_csv
-def create_lookup_table(filename: str) -> Dict[tuple[int, str], str]:
+def create_lookup_table(filename: str) -> defaultdict:
     """
     Read a lookup table file with destination port, protocol, and tag columns.
 
@@ -12,7 +13,7 @@ def create_lookup_table(filename: str) -> Dict[tuple[int, str], str]:
         filename (str): The path to the file containing the lookup table.
 
     Returns:
-        Dict[tuple[int, str], str]: A dictionary with the destination port and protocol as the key and the tag as the value.
+        defaultdict[tuple[int, str], str]: A defaultdict with the destination port and protocol as the key and the tag as the value.
 
     Example:
         The function expects a file with comma-separated values like the following:
@@ -29,7 +30,7 @@ def create_lookup_table(filename: str) -> Dict[tuple[int, str], str]:
         993,tcp,email
         143,tcp,email
     """
-    lookup_table = {}
+    lookup_table = defaultdict(lambda: "UNTAGGED")
     with open(filename) as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Skip the header row
@@ -42,15 +43,15 @@ def create_lookup_table(filename: str) -> Dict[tuple[int, str], str]:
     return lookup_table
 
 @wrap_with_try_csv
-def create_protocol_map(filename: str) -> List[str]:
+def create_protocol_map(filename: str) -> defaultdict:
     """
-    Read a lookup table file with protocol and tag columns.
+    Read a protocol map file with protocol code and the corresponding name.
 
     Parameters:
         filename (str): The path to the file containing the lookup table.
 
     Returns:
-        List[str]: A list with the protocol and tag as the value.
+        defaultdict[int, str]: A defaultdict with the protocol code as the key and the protocol name as the value.
 
     Example:
         The function expects a file with comma-separated values like the following:
@@ -59,13 +60,13 @@ def create_protocol_map(filename: str) -> List[str]:
         6,tcp
         17,udp
     """
-    protocol_list = []
+    protocol_list = defaultdict(lambda: "UNKNOWN_PROTOCOL")
     with open(filename) as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Skip the header row
         for row in reader:
             if len(row) > 1:
-                protocol_list.append(row[1].upper())
+                protocol_list[int(row[0])] = row[1].upper()
             else:
                 # TODO: Log a warning for rows with missing columns.
                 pass

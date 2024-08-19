@@ -7,7 +7,7 @@ DES_PORT_INDEX = 6
 PROTOCOL_INDEX = 7
 
 @wrap_with_try_csv
-def parse_destination_port_and_protocol(filename: str) -> Generator[list[int], None, None]:
+def parse_destination_port_and_protocol(filename: str) -> Generator:
     """
     Read flow log data from a space-separated file without a header using a generator to handle large files.
 
@@ -20,8 +20,7 @@ def parse_destination_port_and_protocol(filename: str) -> Generator[list[int], N
     Example:
         The function expects a file with space-separated values like the following:
         2 123456789012 eni-0a1b2c3d 10.0.1.201 198.51.100.2 443 49153 6 25 20000 1620140761 1620140821 ACCEPT OK
-
-        In this example:
+        
         - The 7th column (49153) represents the destination port.
         - The 8th column (6) represents the protocol.
     """
