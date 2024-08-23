@@ -1,9 +1,9 @@
 import argparse
 import logging
 import csv
-from .parser import parse_destination_port_and_protocol
+from .parser import parse_log_cols
 from .table_loader import create_lookup_table, create_protocol_map
-from .process import count_port_protocol, count_tags, generate_report
+from .process import count_metrics, count_tags, generate_report
 def parse_arguments():
     """
     Parse command-line arguments.
@@ -31,10 +31,10 @@ def process_log_file(log_file, protocol_mapping_file, lookup_table_file, output)
     try:
         protocol_names = create_protocol_map(protocol_mapping_file)
         lookup_table= create_lookup_table(lookup_table_file)
-        logs_info = parse_destination_port_and_protocol(log_file)
-        ports_protocols_counts = count_port_protocol(logs_info, protocol_names)
+        logs_info = parse_log_cols(log_file)
+        ports_protocols_counts, src_dec_counts = count_metrics(logs_info, protocol_names)
         tags_counts = count_tags(ports_protocols_counts, lookup_table)
-        generate_report(tags_counts, ports_protocols_counts, output)
+        generate_report(tags_counts, ports_protocols_counts, src_dec_counts, output)
     except FileNotFoundError as e:
         logging.error(e)
     except csv.Error as e:

@@ -2,20 +2,26 @@ from typing import Generator, List
 from collections import defaultdict
 import os
 
-def count_port_protocol(logs_info: Generator, protocol_names: List) -> defaultdict:
+def count_metrics(logs_info: Generator, protocol_names: List) -> defaultdict:
     """
-    Count the number of logs for each destination port and protocol combination.
+    Count the number of logs for each destination port, protocol, source, and destination combination.
 
     Parameters:
-        logs_info (Generator[List[int]]): A generator of lists with the destination port and protocol.
+        logs_info (Generator[Tuple[int, int, int, int]]): A generator of tuples with the destination port, protocol, source, and destination.
+        protocol_names (List[str]): A list of protocol names indexed by protocol number.
         
     Returns:
-        defaultdict[tuple[int,int], int]: A defaultdict with the destination port and protocol as the key and the count as the value.
+        Tuple[defaultdict[tuple[int, str], int], defaultdict[tuple[int, int, int, str], int]]: 
+        A tuple of two defaultdicts:
+            - The first defaultdict has the destination port and protocol as the key and the count as the value.
+            - The second defaultdict has the source, destination, port, and protocol as the key and the count as the value.
     """
     port_protocol_count = defaultdict(int)
-    for port, protocol in logs_info:
+    src_dst_count = defaultdict(int)
+    for port, protocol , src, des in logs_info:
         port_protocol_count[(port, protocol_names[protocol])] += 1
-    return port_protocol_count
+        src_dst_count[(src, des, port, protocol_names[protocol])] += 1
+    return port_protocol_count , src_dst_count
 
 def count_tags(port_protocol_dict: defaultdict, lookup_table: defaultdict) -> defaultdict:
     """
@@ -34,7 +40,7 @@ def count_tags(port_protocol_dict: defaultdict, lookup_table: defaultdict) -> de
         tag_count[tag] += count
     return tag_count
 
-def generate_report(tags_counts: defaultdict, port_protocol_counts: defaultdict, report_file: str):
+def generate_report(tags_counts: defaultdict, port_protocol_counts: defaultdict, src_dst_counts: defaultdict, report_file: str):
     """
     Generate a report with the tag counts and port/protocol counts.
 
@@ -54,3 +60,9 @@ def generate_report(tags_counts: defaultdict, port_protocol_counts: defaultdict,
         report.write("Port,Protocol,Count\n")
         for (port, protocol), count in port_protocol_counts.items():
             report.write(f"{port},{protocol},{count}\n")
+        report.write("\n")
+        report.write("Source/Destination Counts:\n")
+        report.write("Source,Destination,Port,Protocol,Count\n")
+        for (src, des, port, protocol), count in src_dst_counts.items():
+            report.write(f"{src},{des},{port},{protocol},{count}\n")
+        report.write("\n")
